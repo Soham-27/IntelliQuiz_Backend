@@ -4,6 +4,7 @@ import axios from "axios";
 
 export const generateQuiz = async (req, res) => {
     try {
+        console.log("hitting");
         const { topic, subTopic, numberOfQuestions } = req.body;
 
         // Ensure the API URL is correct

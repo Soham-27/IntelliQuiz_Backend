@@ -25,12 +25,17 @@ app.use('/hello/quiz', quizRouter);
 app.get("/", (req, res) => {
     res.json("Hello from the server!");
 });
-// Enable CORS for all origins and methods
-app.use(cors({
-    origin: "*", // Allow all origins
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow all HTTP methods
-    allowedHeaders: "Content-Type,Authorization", // Allow specific headers
-}));
+
+
+const corsOptions = {
+    origin: [
+        "http://localhost:3000",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+    optionsSuccessStatus: 204,
+};
+app.use(cors(corsOptions));
 
 cron.schedule('* * * * *', () => {
     // This runs your cron job function every hour starting from 10:30 PM IST
