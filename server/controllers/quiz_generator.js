@@ -123,7 +123,7 @@ export const updateAnswerAndGenerateNextQuestion = async (req, res) => {
 
         const correctOption = questionResult.rows[0].correctoption;
         const isCorrect = selectedOption === correctOption ? 1 : 0;
-        const resultMessage = isCorrect ? "Your answer is correct!" : "Your answer is incorrect.";
+        const resultMessage = isCorrect ? "1" : "0";
         console.log(resultMessage);
 
         // Update the isCorrect field in TestQuestion
