@@ -17,9 +17,11 @@ create table user_token(
 
 CREATE TABLE Test (
     test_id SERIAL PRIMARY KEY,
-    userId INT ,
+    userId INT,
+    iscompleted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE Question (
     id SERIAL PRIMARY KEY,
@@ -31,6 +33,7 @@ CREATE TABLE Question (
     difficulty INT NOT NULL
 );
 
+
 CREATE TABLE TestQuestion (
     id SERIAL PRIMARY KEY,
     testId INT NOT NULL,
@@ -38,6 +41,7 @@ CREATE TABLE TestQuestion (
     selectedOption INT,
     reviewStatus BOOLEAN,
     submitStatus BOOLEAN,
+    isCorrect INT DEFAULT 0,
     FOREIGN KEY (testId) REFERENCES Test(test_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (questionId) REFERENCES Question(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

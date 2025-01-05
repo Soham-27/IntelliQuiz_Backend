@@ -2,7 +2,7 @@ import { client } from "../models/db.js";
 import bcrypt from "bcrypt";
 import { generateUserToken } from "../middleware/user_middleware.js";
 
-const saltrounds = process.env.saltrounds
+const saltrounds = process.env.saltrounds|10;
 
 export const createUser = async (req, res) => {
     try {

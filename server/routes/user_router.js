@@ -5,6 +5,4 @@ import { isUserAuthenticated } from "../middleware/user_middleware.js";
 const userRouter=Router();
 userRouter.post("/register",createUser);
 userRouter.post("/login",loginUser);
-userRouter.post("/quiz/generateQuiz",generateQuiz);
-userRouter.post("/quiz/startQuiz",isUserAuthenticated,startQuiz);
 export { userRouter };

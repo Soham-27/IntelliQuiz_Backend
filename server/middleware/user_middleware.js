@@ -39,7 +39,7 @@ export const generateUserToken = async (user_id) => {
         try {
             const timeStamp = new Date();
             const key = process.env.TOKEN_SECRET || 'default_secret_key';
-            const token = jwt.sign({ id: user_id }, key, { expiresIn: '24h' });
+            const token = jwt.sign({ id: user_id }, key, { expiresIn: '30d' });
             
             const tokenRecordQuery = "INSERT INTO user_token (fk_user, token, created_at, updated_at) VALUES ($1, $2, $3, $4)";
             const tokenParams = [user_id, token, timeStamp, timeStamp];
