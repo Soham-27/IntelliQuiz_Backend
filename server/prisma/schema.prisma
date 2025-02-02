@@ -16,6 +16,8 @@ model User {
   password   String
   email      String    @unique
   createdAt  DateTime  @default(now()) @map("created_at")
+  grade      String?
+  education  String?
   tokens     UserToken[]
   tests      Test[]
 }
@@ -51,6 +53,7 @@ model Question {
 model TestQuestion {
   id            Int      @id @default(autoincrement())
   testId        Int
+  userId        Int
   questionId    Int
   selectedOption Int?
   reviewStatus  Boolean?
@@ -58,4 +61,5 @@ model TestQuestion {
   isCorrect     Int      @default(0)
   test          Test     @relation(fields: [testId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
