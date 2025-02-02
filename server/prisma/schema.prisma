@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://neondb_owner:npg_Et45LjpbgqfN@ep-damp-block-a49x8n59-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  userName   String    @map("user_name")
+  password   String
+  email      String    @unique
+  createdAt  DateTime  @default(now()) @map("created_at")
+  tokens     UserToken[]
+  tests      Test[]
+}
+
+model UserToken {
+  id        Int      @id @default(autoincrement()) @map("user_token_id")
+  userId    Int      @map("fk_user")
+  token     String?
+  createdAt DateTime?
+  updatedAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Test {
+  id         Int      @id @default(autoincrement()) @map("test_id")
+  userId     Int
+  isCompleted Boolean @default(false) @map("iscompleted")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  testQuestions TestQuestion[]
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  question      String
+  options       String[]
+  correctOption Int
+  topic         String
+  subTopic      String
+  difficulty    Int
+  testQuestions TestQuestion[]
+}
+
+model TestQuestion {
+  id            Int      @id @default(autoincrement())
+  testId        Int
+  questionId    Int
+  selectedOption Int?
+  reviewStatus  Boolean?
+  submitStatus  Boolean?
+  isCorrect     Int      @default(0)
+  test          Test     @relation(fields: [testId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
