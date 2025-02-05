@@ -6,6 +6,7 @@ import { quizRouter } from "./routes/quizroutes.js";
 import { connectToDatabase } from "./models/db.js";
 import cors from "cors";
 import cron from "node-cron";
+import { resultRouter } from "./routes/resultRoutes.js";
 
 // Load environment variables
 dotenv.config("./.env");
@@ -28,8 +29,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/user", userRouter);
-app.use("/hello/quiz", quizRouter);
-
+app.use("/quiz", quizRouter);
+app.use("/result", resultRouter);
 // Basic route
 app.get("/", (req, res) => {
   res.json("Hello from the server!");
