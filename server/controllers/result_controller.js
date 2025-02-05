@@ -30,7 +30,7 @@ export const generateResult = async (req, res) => {
         .json({ error: "No submitted answers found for this test." });
     }
 
-    // ✅ Calculate test results
+    // ✅ Calculate test results.
     const totalQuestions = testQuestions.length;
     const correctAnswers = testQuestions.filter(
       (q) => q.isCorrect === 1
