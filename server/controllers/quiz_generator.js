@@ -172,7 +172,7 @@ export const getNextQuestion = async (req, res) => {
     const topic = question.topic;
     const sub_topic = question.subTopic;
     // // ✅ Step 2: Fetch the next question from the data
-    const nextQuestion = await prisma.question.findFirst({
+    let nextQuestion = await prisma.question.findFirst({
       where: {
         topic: topic,
         subTopic: sub_topic,
@@ -189,14 +189,30 @@ export const getNextQuestion = async (req, res) => {
       orderBy: { id: "asc" }, // You can modify ordering as needed
     });
 
-    console.log(nextQuestion);
-
-    console.log(nextQuestion);
-
     if (!nextQuestion) {
-      return res
-        .status(404)
-        .json({ error: "No question available for the next difficulty level" });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/generate-question",
+        { topic: topic, sub_topic: sub_topic, difficulty: next_diffculty },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const newQuestionData = response.data.question;
+      console.log("Generated Question:", newQuestionData);
+
+      nextQuestion = await prisma.question.create({
+        data: {
+          question: newQuestionData.question,
+          options: newQuestionData.options,
+          correctOption: newQuestionData.correctIndex,
+          topic: topic,
+          subTopic: sub_topic,
+          difficulty: newQuestionData.difficulty,
+          Question_type: "custom",
+          testId: parseInt(testId),
+        },
+      });
+
+      console.log("New question stored in DB:", nextQuestion);
     }
 
     await prisma.testQuestion.create({

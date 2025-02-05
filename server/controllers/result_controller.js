@@ -50,6 +50,15 @@ export const generateResult = async (req, res) => {
       },
     });
 
+    await prisma.test.update({
+      where: {
+        id: test_id,
+      },
+      data: {
+        isCompleted: true,
+      },
+    });
+
     // ✅ Return the result
     res.status(200).json({
       message: "Test result generated successfully",

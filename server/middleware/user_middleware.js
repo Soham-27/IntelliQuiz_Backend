@@ -14,7 +14,7 @@ export const isUserAuthenticated = async (req, res, next) => {
 
     // Use findFirst instead of findUnique
     const tokenRecord = await prisma.userToken.findFirst({
-      where: { token }, // This works now
+      where: { token: token }, // This works now
       include: {
         user: {
           select: {
