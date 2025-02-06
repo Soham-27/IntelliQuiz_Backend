@@ -74,3 +74,35 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const signOutUser = async (req, res) => {
+  try {
+    // Check if Authorization header exists
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+
+    // Extract the token from the header
+    const userToken = authHeader.split(" ")[1];
+
+    // Check if token exists in the database
+    const existingToken = await prisma.userToken.findFirst({
+      where: { token: userToken },
+    });
+
+    if (!existingToken) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    // Delete the token from the database
+    await prisma.userToken.deleteMany({
+      where: { token: userToken },
+    });
+
+    return res.status(200).json({ message: "User signed out successfully" });
+  } catch (error) {
+    console.error("Error in signing out user:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
