@@ -10,7 +10,7 @@ export const generateQuiz = async (req, res) => {
     const { topic, subTopic, numberOfQuestions } = req.body;
 
     const response = await axios.post(
-      "http://127.0.0.1:8000/generate-quiz",
+      `${process.env.FAST_API}/generate-quiz`,
       { topic, sub_topic: subTopic, num_questions: numberOfQuestions },
       { headers: { "Content-Type": "application/json" } }
     );
@@ -152,7 +152,7 @@ export const getNextQuestion = async (req, res) => {
 
     // ✅ Step 1: Call FastAPI to get the   next difficulty level
     const fastApiResponse = await axios.post(
-      "http://127.0.0.1:8000/predict",
+      `${process.env.FAST_API}/predict`,
       {
         Current: parseInt(difficulty),
         Time_Taken: parseFloat(time_taken),
@@ -191,7 +191,7 @@ export const getNextQuestion = async (req, res) => {
 
     if (!nextQuestion) {
       const response = await axios.post(
-        "http://127.0.0.1:8000/generate-question",
+        `${process.env.FAST_API}/generate-question`,
         { topic: topic, sub_topic: sub_topic, difficulty: next_diffculty },
         { headers: { "Content-Type": "application/json" } }
       );
