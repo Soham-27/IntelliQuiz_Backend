@@ -68,11 +68,11 @@ export const getUserAnalytics = async (req, res) => {
   try {
     const userId = req.user.id; // Assuming req.user is populated by authentication middleware
 
-    // 1. Get total quizzes, average score, and highest percentage using aggregate
+    // 1. Get total quizzes, average percentage, and highest percentage using aggregate
     const aggregateMetrics = await prisma.testResult.aggregate({
       where: { userId },
       _avg: {
-        score: true,
+        percentage: true, // Changed from score to percentage
       },
       _max: {
         percentage: true,
@@ -83,9 +83,9 @@ export const getUserAnalytics = async (req, res) => {
     });
 
     // If the user hasn't taken any tests, aggregateMetrics._count.id will be 0.
-    // For avgScore, Prisma returns null when there are no records.
+    // For avgPercentage, Prisma returns null when there are no records.
     const totalQuizzes = aggregateMetrics._count.id || 0;
-    const avgScore = aggregateMetrics._avg.score || 0;
+    const avgPercentage = aggregateMetrics._avg.percentage || 0;
     const highestPercentage = aggregateMetrics._max.percentage || 0;
 
     // 2. Calculate the start of the current week (assuming Monday as the start)
@@ -110,7 +110,7 @@ export const getUserAnalytics = async (req, res) => {
     // 4. Format and return the analytics data, ensuring defaults are used when necessary
     const analytics = {
       totalQuizzes,
-      avgScore,
+      avgPercentage,
       highestPercentage,
       quizzesThisWeek,
     };
