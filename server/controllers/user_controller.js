@@ -1,44 +1,121 @@
-import { client } from "../models/db.js";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateUserToken } from "../middleware/user_middleware.js";
 
-const saltrounds = process.env.saltrounds|10;
+const prisma = new PrismaClient();
+const saltRounds = 10; // Define salt rounds for bcrypt
 
 export const createUser = async (req, res) => {
-    try {
-        const { user_name, email, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, parseInt(saltrounds));
-        const query = "INSERT INTO users (user_name, email, password) VALUES ($1, $2, $3) RETURNING id, user_name, email";
-        const params = [user_name, email, hashedPassword];
-        const result = await client.query(query, params);
-        const user = result.rows[0];
-        const token = await generateUserToken(user.id); // Use 'id' here instead of 'user_id'
-        res.status(201).json({ user, token });
-    } catch (error) {
-        console.error("Error in creating user:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+  try {
+    const { user_name, email, password } = req.body;
 
+    if (!user_name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { userName: user_name }],
+      },
+    });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "Email and username already exist" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user in database
+    const user = await prisma.user.create({
+      data: {
+        userName: user_name, // Match Prisma schema
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    // Generate token
+    const token = await generateUserToken(user.id);
+
+    res.status(201).json({ user, token });
+  } catch (error) {
+    console.error("Error in creating user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 export const loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const query = "SELECT id, user_name, email, password FROM users WHERE email = $1";
-        const params = [email];
-        const result = await client.query(query, params);
-        const user = result.rows[0];
-        if (!user) {
-            return res.status(401).json({ error: "Invalid email" });
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: "Invalid password" });
-        }
-        const token = await generateUserToken(user.user_id);
-        res.status(200).json({ user, token });
-    } catch (error) {
-        console.error("Error in user login:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+  try {
+    const { email, password } = req.body;
+    console.log("hitting");
+    const user = await prisma.user.findFirst({
+      where: { email },
+      select: {
+        id: true,
+        userName: true,
+        email: true,
+        password: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email" });
     }
-}
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    const token = await generateUserToken(user.id);
+    res.status(200).json({
+      user: {
+        id: user.id,
+        userName: user.userName,
+        email: user.email,
+        grade: user.grade,
+        education: user.education,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error("Error in user login:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const signOutUser = async (req, res) => {
+  try {
+    // Check if Authorization header exists
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+
+    // Extract the token from the header
+    const userToken = authHeader.split(" ")[1];
+
+    // Check if token exists in the database
+    const existingToken = await prisma.userToken.findFirst({
+      where: { token: userToken },
+    });
+
+    if (!existingToken) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    // Delete the token from the database
+    await prisma.userToken.deleteMany({
+      where: { token: userToken },
+    });
+
+    return res.status(200).json({ message: "User signed out successfully" });
+  } catch (error) {
+    console.error("Error in signing out user:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

@@ -3,16 +3,17 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import { userRouter } from "./routes/user_router.js";
 import { quizRouter } from "./routes/quizroutes.js";
-import { connectToDatabase } from "./models/db.js";
 import cors from "cors";
 import cron from "node-cron";
-
+import { resultRouter } from "./routes/resultRoutes.js";
+import { analyticsRouter } from "./routes/analyzerouter.js";
+import { PrismaClient } from "@prisma/client";
 // Load environment variables
 dotenv.config("./.env");
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+const prisma = new PrismaClient();
 // CORS middleware should be one of the first middleware
 app.use(
   cors({
@@ -22,14 +23,24 @@ app.use(
   })
 );
 
+async function connectDB() {
+  try {
+    await prisma.$connect();
+    console.log("🟢 Database connected successfully!");
+  } catch (error) {
+    console.error("🔴 Database connection failed:", error);
+    process.exit(1); // Exit process if DB connection fails
+  }
+}
 // Other middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/user", userRouter);
-app.use("/hello/quiz", quizRouter);
-
+app.use("/quiz", quizRouter);
+app.use("/result", resultRouter);
+app.use("/analytics", analyticsRouter);
 // Basic route
 app.get("/", (req, res) => {
   res.json("Hello from the server!");
@@ -41,8 +52,8 @@ cron.schedule("* * * * *", () => {
 });
 
 // Connect to database and start server
-connectToDatabase().then(() => {
+connectDB().then(() => {
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`🚀 Server is running on http://localhost:${port}`);
   });
 });
