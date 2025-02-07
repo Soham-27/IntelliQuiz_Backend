@@ -13,14 +13,27 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { userName: user_name }],
+      },
+    });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "Email and username already exist" });
+    }
+
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user in database
     const user = await prisma.user.create({
       data: {
-        userName: user_name, // Match Prisma schema (mapped as `user_name`)
-        email: email,
+        userName: user_name, // Match Prisma schema
+        email,
         password: hashedPassword,
       },
     });
@@ -62,7 +75,7 @@ export const loginUser = async (req, res) => {
     res.status(200).json({
       user: {
         id: user.id,
-        user_name: user.userName,
+        userName: user.userName,
         email: user.email,
         grade: user.grade,
         education: user.education,
