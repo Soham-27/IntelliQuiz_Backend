@@ -94,6 +94,8 @@ export const generateyoutubeQuiz = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const generatepdfQuiz = async (req, res) => {};
 export const startQuiz = async (req, res) => {
   try {
     const { test_id, difficulty } = req.body;
@@ -442,5 +444,39 @@ export const getNotSubmittedQuestions = async (req, res) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+export const reportQuestion = async (req, res) => {
+  try {
+    const { q_id } = req.body;
+
+    // Validate input
+    if (!q_id) {
+      return res.status(400).json({ error: "Question ID is required" });
+    }
+
+    // Check if the question exists before updating
+    const questionExists = await prisma.question.findFirst({
+      where: { id: q_id },
+    });
+    console.log(questionExists);
+    if (!questionExists) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    // Update the question as reported
+    const result = await prisma.question.update({
+      where: { id: q_id },
+      data: { reported: true },
+    });
+
+    res
+      .status(200)
+      .json({ message: "Question reported successfully", question: result });
+  } catch (error) {
+    console.error("Error reporting question:", error);
+
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

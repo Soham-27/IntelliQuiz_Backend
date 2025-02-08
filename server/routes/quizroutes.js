@@ -5,6 +5,7 @@ import {
   getNextQuestion,
   getNotSubmittedQuestions,
   getNotSubmittedTestsraut,
+  reportQuestion,
   startQuiz,
   submitAnswer,
 } from "../controllers/quiz_generator.js";
@@ -26,4 +27,5 @@ quizRouter.post(
   isUserAuthenticated,
   getNotSubmittedQuestions
 );
+quizRouter.post("/report", isUserAuthenticated, reportQuestion);
 export { quizRouter };

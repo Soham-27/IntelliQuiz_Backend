@@ -54,6 +54,7 @@
     difficulty    Int
     Question_type String
     explanation   String?
+    reported      Boolean?
     testId        Int     // Make it optional
     test          Test?    @relation(fields: [testId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     testQuestions TestQuestion[]
