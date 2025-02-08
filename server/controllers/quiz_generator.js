@@ -78,6 +78,7 @@ export const generateyoutubeQuiz = async (req, res) => {
           difficulty: q.difficulty,
           testId: test.id,
           Question_type: "youtube",
+          explanation: q.explanation,
         },
       });
       console.log("Question to database");
