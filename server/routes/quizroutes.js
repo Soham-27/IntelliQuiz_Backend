@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   generateQuiz,
+  generateyoutubeQuiz,
   getNextQuestion,
   startQuiz,
   submitAnswer,
@@ -12,5 +13,10 @@ quizRouter.post("/generateQuiz", isUserAuthenticated, generateQuiz);
 quizRouter.post("/startquiz", isUserAuthenticated, startQuiz);
 quizRouter.get("/nextquestion/", isUserAuthenticated, getNextQuestion);
 quizRouter.post("/submit", isUserAuthenticated, submitAnswer);
+quizRouter.post(
+  "/generateYouTubeQuiz",
+  isUserAuthenticated,
+  generateyoutubeQuiz
+);
 
 export { quizRouter };

@@ -119,3 +119,31 @@ export const signOutUser = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+export const userinfo = async (req, res) => {
+  try {
+    if (!req.user.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        userName: true,
+        email: true,
+        grade: false,
+        education: false,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

@@ -49,6 +49,48 @@ export const generateQuiz = async (req, res) => {
   }
 };
 
+export const generateyoutubeQuiz = async (req, res) => {
+  try {
+    const { youtube_url, numberOfQuestions } = req.body;
+    console.log(youtube_url);
+    console.log(numberOfQuestions);
+    const user_id = req.user.id;
+    const response = await axios.post(
+      `${process.env.FAST_API}/process-youtube`,
+      { video_url: youtube_url, num_questions: parseInt(numberOfQuestions) },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    console.log(response.data);
+    const test = await prisma.test.create({
+      data: { userId: user_id },
+    });
+    console.log("test is generated", test.id);
+    for (const q of response.data.question) {
+      await prisma.question.create({
+        data: {
+          question: q.question,
+          options: q.options,
+          correctOption: q.correctIndex,
+          topic: q.topic,
+          difficulty: q.difficulty,
+          testId: test.id,
+          Question_type: "youtube",
+        },
+      });
+      console.log("Question to database");
+    }
+    const questions = await prisma.question.findMany({
+      where: {
+        testId: test.id,
+        Question_type: "youtube",
+      },
+    });
+    res.status(200).json({ questions });
+  } catch (error) {
+    console.error("Error in generating quiz:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 export const startQuiz = async (req, res) => {
   try {
     const { test_id, difficulty } = req.body;
@@ -142,89 +184,126 @@ export const submitAnswer = async (req, res) => {
 
 export const getNextQuestion = async (req, res) => {
   try {
-    // console.log(req);
+    // Extract query parameters and userId
     const { difficulty, isCorrect, time_taken, testId } = req.query;
-    const userId = req.user.id; // Get the user ID from authentication middleware // Get topic & subTopic from request body
-    console.log(difficulty);
-    console.log(isCorrect);
-    console.log(time_taken);
-    console.log(testId);
+    const userId = req.user.id; // from authentication middleware
 
-    // ✅ Step 1: Call FastAPI to get the   next difficulty level
-    const fastApiResponse = await axios.post(
-      `${process.env.FAST_API}/predict`,
-      {
-        Current: parseInt(difficulty),
-        Time_Taken: parseFloat(time_taken),
-        Score: parseInt(isCorrect),
-      },
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    console.log(fastApiResponse.data.next);
-    const next_diffculty = fastApiResponse.data.next;
-    const question = await prisma.question.findFirst({
-      where: {
-        testId: parseInt(testId),
-      },
+    // Step 0: Retrieve a representative question for the test to know its type, topic, and subTopic.
+    const initialQuestion = await prisma.question.findFirst({
+      where: { testId: parseInt(testId, 10) },
     });
 
-    const topic = question.topic;
-    const sub_topic = question.subTopic;
-    // // ✅ Step 2: Fetch the next question from the data
-    let nextQuestion = await prisma.question.findFirst({
-      where: {
-        topic: topic,
-        subTopic: sub_topic,
-        difficulty: next_diffculty,
-        // Exclude questions that have already been asked in TestQuestion for this user & test
-        NOT: {
-          testQuestions: {
-            some: {
-              testId: parseInt(testId),
-            },
-          },
+    if (!initialQuestion) {
+      return res
+        .status(404)
+        .json({ error: "No questions found for this test" });
+    }
+
+    const questionType = initialQuestion.Question_type; // e.g., "custom" or "other"
+    const topic = initialQuestion.topic;
+    const sub_topic = initialQuestion.subTopic;
+
+    let nextQuestion;
+    console.log(questionType);
+    if (questionType === "custom") {
+      // -------------------------------
+      console.log(questionType);
+      // Custom test: Use the predictive API
+      // -------------------------------
+      // Step 1: Call FastAPI to get the next difficulty level.
+      const fastApiResponse = await axios.post(
+        `${process.env.FAST_API}/predict`,
+        {
+          Current: parseInt(difficulty, 10),
+          Time_Taken: parseFloat(time_taken),
+          Score: parseInt(isCorrect, 10),
         },
-      },
-      orderBy: { id: "asc" }, // You can modify ordering as needed
-    });
-
-    if (!nextQuestion) {
-      const response = await axios.post(
-        `${process.env.FAST_API}/generate-question`,
-        { topic: topic, sub_topic: sub_topic, difficulty: next_diffculty },
         { headers: { "Content-Type": "application/json" } }
       );
 
-      const newQuestionData = response.data.question;
-      console.log("Generated Question:", newQuestionData);
+      const next_difficulty = fastApiResponse.data.next;
+      console.log("Next difficulty from FastAPI:", next_difficulty);
 
-      nextQuestion = await prisma.question.create({
-        data: {
-          question: newQuestionData.question,
-          options: newQuestionData.options,
-          correctOption: newQuestionData.correctIndex,
+      // Step 2: Try to fetch the next question matching the predicted difficulty, topic, and subTopic,
+      // and exclude questions that have already been asked in this test.
+      nextQuestion = await prisma.question.findFirst({
+        where: {
           topic: topic,
           subTopic: sub_topic,
-          difficulty: newQuestionData.difficulty,
-          Question_type: "custom",
-          testId: parseInt(testId),
+          difficulty: next_difficulty,
+          NOT: {
+            testQuestions: {
+              some: {
+                testId: parseInt(testId, 10),
+              },
+            },
+          },
+        },
+        orderBy: { id: "asc" },
+      });
+
+      // If no question is found, call the FastAPI endpoint to generate a new question.
+      if (!nextQuestion) {
+        const response = await axios.post(
+          `${process.env.FAST_API}/generate-question`,
+          { topic: topic, sub_topic: sub_topic, difficulty: next_difficulty },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const newQuestionData = response.data.question;
+        console.log("Generated Question:", newQuestionData);
+
+        nextQuestion = await prisma.question.create({
+          data: {
+            question: newQuestionData.question,
+            options: newQuestionData.options,
+            correctOption: newQuestionData.correctIndex,
+            topic: topic,
+            subTopic: sub_topic,
+            difficulty: newQuestionData.difficulty,
+            Question_type: "custom", // mark it as custom
+            testId: parseInt(testId, 10),
+          },
+        });
+
+        console.log("New question stored in DB:", nextQuestion);
+      }
+    } else {
+      // -------------------------------
+      // Non-custom test: Get a random question (without difficulty logic)
+      // -------------------------------
+      // Retrieve all questions for this test that haven't been used yet.
+      const availableQuestions = await prisma.question.findMany({
+        where: {
+          testId: parseInt(testId, 10),
+          NOT: {
+            testQuestions: {
+              some: { testId: parseInt(testId, 10) },
+            },
+          },
         },
       });
 
-      console.log("New question stored in DB:", nextQuestion);
+      if (availableQuestions.length === 0) {
+        return res.status(404).json({ error: "No more questions available" });
+      }
+
+      // Pick a random question from the available pool.
+      const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+      nextQuestion = availableQuestions[randomIndex];
     }
 
+    // Save the next question as a record in TestQuestion.
     await prisma.testQuestion.create({
       data: {
-        testId: parseInt(testId),
+        testId: parseInt(testId, 10),
         userId: userId,
         questionId: nextQuestion.id,
       },
     });
 
     res.status(200).json({
-      message: "next question here it is !!",
+      message: "Next question retrieved successfully",
       test_id: testId,
       newQuestion: nextQuestion,
     });
