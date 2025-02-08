@@ -169,3 +169,9 @@ export const getQuestionsByTestId = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const getnotsubmiitedtest = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+  } catch (error) {}
+};
