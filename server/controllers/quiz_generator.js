@@ -31,6 +31,7 @@ export const generateQuiz = async (req, res) => {
           difficulty: q.difficulty,
           testId: test.id,
           Question_type: "custom",
+          explanation: q.explanation,
         },
       });
       console.log("Question to database");
@@ -135,10 +136,10 @@ export const submitAnswer = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // ✅ Fetch the correct answer for the given question
+    // ✅ Fetch the correct answer and explanation for the given question
     const question = await prisma.question.findUnique({
       where: { id: questionId },
-      select: { correctOption: true },
+      select: { correctOption: true, explanation: true },
     });
 
     if (!question) {
@@ -174,8 +175,10 @@ export const submitAnswer = async (req, res) => {
 
     console.log(`Answer submitted. Correct: ${isCorrect}`);
 
-    // ✅ Respond with 1 for correct answer, 0 for incorrect
-    res.status(200).json({ result: isCorrect });
+    // ✅ Respond with result and explanation
+    res
+      .status(200)
+      .json({ result: isCorrect, explanation: question.explanation });
   } catch (error) {
     console.error("Error in submitting answer:", error);
     res.status(500).json({ error: "Internal Server Error" });
