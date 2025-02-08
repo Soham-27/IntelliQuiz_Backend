@@ -3,6 +3,7 @@ import {
   generateQuiz,
   generateyoutubeQuiz,
   getNextQuestion,
+  getNotSubmittedQuestions,
   getNotSubmittedTestsraut,
   startQuiz,
   submitAnswer,
@@ -20,4 +21,9 @@ quizRouter.post(
   generateyoutubeQuiz
 );
 quizRouter.get("/getnot", isUserAuthenticated, getNotSubmittedTestsraut);
+quizRouter.post(
+  "/getQuestionForTestIds",
+  isUserAuthenticated,
+  getNotSubmittedQuestions
+);
 export { quizRouter };

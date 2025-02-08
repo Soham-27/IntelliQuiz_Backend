@@ -327,34 +327,36 @@ function generateNextDifficulty(currentDifficulty, isCorrect) {
 
 export const getNotSubmittedTestsraut = async (req, res) => {
   try {
-    const user_id = req.user.id; // Extract user ID from request
+    const user_id = req.user.id;
     console.log(user_id);
 
-    // Fetch tests that are not completed
+    // Fetch tests that are not completed, including their questions
     const notCompletedTests = await prisma.test.findMany({
       where: {
         userId: user_id,
         isCompleted: false,
       },
       select: {
-        id: true, // testId
-        isCompleted: true, // Status
+        id: true,
+        isCompleted: true,
         Question: {
-          take: 1, // Fetch only one question per test
           select: {
             topic: true,
             subTopic: true,
           },
+          // Take first question to get topic info
+          // Since all questions in a test typically share the same topic
+          take: 1,
         },
       },
     });
 
-    // Format response
+    // Format the response to include topic information
     const formattedTests = notCompletedTests.map((test) => ({
       testId: test.id,
-      topic: test.Question.length > 0 ? test.Question[0].topic || null : null, // Single topic
+      topic: test.Question.length > 0 ? test.Question[0].topic || null : null,
       subTopic:
-        test.Question.length > 0 ? test.Question[0].subTopic || null : null, // Single subTopic
+        test.Question.length > 0 ? test.Question[0].subTopic || null : null,
       status: test.isCompleted ? "Completed" : "Not Completed",
     }));
 
@@ -364,6 +366,68 @@ export const getNotSubmittedTestsraut = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching not submitted tests:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getNotSubmittedQuestions = async (req, res) => {
+  try {
+    const user_id = req.user.id; // Extract user ID from request
+    const { test_id } = req.body; // Extract test_id from request body
+
+    if (!test_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Test ID is required",
+      });
+    }
+
+    // Fetch submitted questions from TestQuestion table
+    const submittedQuestions = await prisma.testQuestion.findMany({
+      where: {
+        userId: user_id,
+        testId: test_id,
+        submitStatus: true, // Only fetch submitted questions
+      },
+      select: {
+        id: true, // TestQuestion ID
+        questionId: true,
+        selectedOption: true, // User's submitted answer
+        isCorrect: true, // Whether the answer was correct (0 or 1)
+        question: {
+          select: {
+            question: true,
+            options: true,
+            correctOption: true,
+            topic: true,
+            subTopic: true,
+            explanation: true,
+            Question_type: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: submittedQuestions.map((q) => ({
+        testQuestionId: q.id,
+        questionId: q.questionId,
+        question: q.question.question,
+        options: q.question.options,
+        selectedOption: q.selectedOption,
+        correctOption: q.question.correctOption,
+        isCorrect: q.isCorrect === 1, // Convert to boolean
+        topic: q.question.topic,
+        subTopic: q.question.subTopic,
+        explanation: q.question.explanation,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching submitted questions:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
