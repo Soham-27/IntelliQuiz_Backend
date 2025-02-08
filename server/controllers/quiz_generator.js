@@ -19,6 +19,8 @@ export const generateQuiz = async (req, res) => {
     const test = await prisma.test.create({
       data: { userId },
     });
+    const test_id = test.id;
+    console.log(test_id);
     console.log("test is generated", test.id);
     for (const q of response.data.questions) {
       await prisma.question.create({
@@ -29,7 +31,7 @@ export const generateQuiz = async (req, res) => {
           topic: topic,
           subTopic: subTopic,
           difficulty: q.difficulty,
-          testId: test.id,
+          testId: test_id,
           Question_type: "custom",
           explanation: q.explanation,
         },
@@ -266,6 +268,7 @@ export const getNextQuestion = async (req, res) => {
             difficulty: newQuestionData.difficulty,
             Question_type: "custom", // mark it as custom
             testId: parseInt(testId, 10),
+            explanation: newQuestionData.explanation,
           },
         });
 
