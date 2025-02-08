@@ -324,3 +324,49 @@ function generateNextDifficulty(currentDifficulty, isCorrect) {
     ? Math.min(currentDifficulty + 1, 5)
     : Math.max(currentDiffciculty - 1, 1);
 }
+
+export const getNotSubmittedTestsraut = async (req, res) => {
+  try {
+    const user_id = req.user.id; // Extract user ID from request
+    console.log(user_id);
+
+    // Fetch tests that are not completed
+    const notCompletedTests = await prisma.test.findMany({
+      where: {
+        userId: user_id,
+        isCompleted: false,
+      },
+      select: {
+        id: true, // testId
+        isCompleted: true, // Status
+        Question: {
+          take: 1, // Fetch only one question per test
+          select: {
+            topic: true,
+            subTopic: true,
+          },
+        },
+      },
+    });
+
+    // Format response
+    const formattedTests = notCompletedTests.map((test) => ({
+      testId: test.id,
+      topic: test.Question.length > 0 ? test.Question[0].topic || null : null, // Single topic
+      subTopic:
+        test.Question.length > 0 ? test.Question[0].subTopic || null : null, // Single subTopic
+      status: test.isCompleted ? "Completed" : "Not Completed",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: formattedTests,
+    });
+  } catch (error) {
+    console.error("Error fetching not submitted tests:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

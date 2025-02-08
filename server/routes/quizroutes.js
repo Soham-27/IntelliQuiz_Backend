@@ -3,6 +3,7 @@ import {
   generateQuiz,
   generateyoutubeQuiz,
   getNextQuestion,
+  getNotSubmittedTestsraut,
   startQuiz,
   submitAnswer,
 } from "../controllers/quiz_generator.js";
@@ -18,5 +19,5 @@ quizRouter.post(
   isUserAuthenticated,
   generateyoutubeQuiz
 );
-
+quizRouter.get("/getnot", isUserAuthenticated, getNotSubmittedTestsraut);
 export { quizRouter };
