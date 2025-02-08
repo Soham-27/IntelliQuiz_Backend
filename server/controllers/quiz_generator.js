@@ -330,11 +330,14 @@ export const getNotSubmittedTestsraut = async (req, res) => {
     const user_id = req.user.id;
     console.log(user_id);
 
-    // Fetch tests that are not completed, including their questions
+    // Fetch tests that are not completed, including their topic/subtopic and counts
     const notCompletedTests = await prisma.test.findMany({
       where: {
         userId: user_id,
         isCompleted: false,
+      },
+      orderBy: {
+        id: "desc",
       },
       select: {
         id: true,
@@ -344,19 +347,27 @@ export const getNotSubmittedTestsraut = async (req, res) => {
             topic: true,
             subTopic: true,
           },
-          // Take first question to get topic info
-          // Since all questions in a test typically share the same topic
-          take: 1,
+          take: 1, // Take one question for topic/subtopic
+        },
+        _count: {
+          select: {
+            testQuestions: {
+              where: { submitStatus: true }, // Count only submitted questions
+            },
+            Question: true, // Count total questions in the test
+          },
         },
       },
     });
 
-    // Format the response to include topic information
+    // Format the response
     const formattedTests = notCompletedTests.map((test) => ({
       testId: test.id,
       topic: test.Question.length > 0 ? test.Question[0].topic || null : null,
       subTopic:
         test.Question.length > 0 ? test.Question[0].subTopic || null : null,
+      submittedQuestionsCount: test._count.testQuestions || 0, // Count of submitted questions
+      totalQuestionsCount: test._count.Question || 0, // Count of total questions in test
       status: test.isCompleted ? "Completed" : "Not Completed",
     }));
 
@@ -372,7 +383,6 @@ export const getNotSubmittedTestsraut = async (req, res) => {
     });
   }
 };
-
 export const getNotSubmittedQuestions = async (req, res) => {
   try {
     const user_id = req.user.id; // Extract user ID from request
