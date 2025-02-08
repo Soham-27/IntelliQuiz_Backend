@@ -387,8 +387,8 @@ export const getNotSubmittedTestsraut = async (req, res) => {
 };
 export const getNotSubmittedQuestions = async (req, res) => {
   try {
-    const user_id = req.user.id; // Extract user ID from request
-    const { test_id } = req.body; // Extract test_id from request body
+    const user_id = req.user.id;
+    const { test_id } = req.body;
 
     if (!test_id) {
       return res.status(400).json({
@@ -397,18 +397,17 @@ export const getNotSubmittedQuestions = async (req, res) => {
       });
     }
 
-    // Fetch submitted questions from TestQuestion table
     const submittedQuestions = await prisma.testQuestion.findMany({
       where: {
         userId: user_id,
         testId: test_id,
-        submitStatus: true, // Only fetch submitted questions
+        submitStatus: true,
       },
       select: {
-        id: true, // TestQuestion ID
+        id: true,
         questionId: true,
-        selectedOption: true, // User's submitted answer
-        isCorrect: true, // Whether the answer was correct (0 or 1)
+        selectedOption: true,
+        isCorrect: true,
         question: {
           select: {
             question: true,
@@ -416,8 +415,7 @@ export const getNotSubmittedQuestions = async (req, res) => {
             correctOption: true,
             topic: true,
             subTopic: true,
-            explanation: true,
-            Question_type: true,
+            Question_type: true, // Removed explanation
           },
         },
       },
@@ -432,10 +430,9 @@ export const getNotSubmittedQuestions = async (req, res) => {
         options: q.question.options,
         selectedOption: q.selectedOption,
         correctOption: q.question.correctOption,
-        isCorrect: q.isCorrect === 1, // Convert to boolean
+        isCorrect: q.isCorrect === 1,
         topic: q.question.topic,
         subTopic: q.question.subTopic,
-        explanation: q.question.explanation,
       })),
     });
   } catch (error) {
