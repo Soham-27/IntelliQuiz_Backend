@@ -79,7 +79,7 @@ async function analyzeTest(data) {
         content: `Test data: ${JSON.stringify(data, null, 2)}\n\n
         YouTube links: ${formattedLinks}
         generate analysis based on given Test data and provide followiing as follows
-        1.genrate strength and weak areas from given data
+        1.genrate strength and weak areas from given data and some detailed about stength
         2.provide study resources for each topic also provide you tube links
         3.provide you tube like which provided above
         4.generate weekly plan like from monday to sunday for each day
@@ -87,7 +87,7 @@ async function analyzeTest(data) {
         
 
         Format the response as a valid JSON array with this exact structure:
-        {
+        "{
             "strength":["strengths be here"],
             "weak area":["weak areas here"],
             "study resources":[
@@ -100,8 +100,8 @@ async function analyzeTest(data) {
               "day":"like monday",
               "to do":"tasks for learning"
             }]
-        }
-      
+        } "
+        Return ONLY the JSON object with no additional text or formatting.
         `,
       },
     ],
@@ -164,7 +164,7 @@ export const getrecommdations = async (req, res) => {
     console.log(formattedResults);
     const analysis = await analyzeTest(formattedResults);
     console.log(analysis);
-    res.json(analysis);
+    res.json(JSON.parse(analysis));
   } catch (error) {
     console.error("Error in generating result:", error);
     res.status(500).json({ error: "Internal Server Error" });
