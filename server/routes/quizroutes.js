@@ -28,4 +28,5 @@ quizRouter.post(
   getNotSubmittedQuestions
 );
 quizRouter.put("/report/:q_id", isUserAuthenticated, reportQuestion);
+//quizRouter.post("/broadcast", isUserAuthenticated, getBroadcastedQuestion);
 export { quizRouter };

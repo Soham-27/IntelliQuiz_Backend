@@ -7,7 +7,7 @@ const YOUTUBE_API_KEY = "AIzaSyA1Mv_KvParabXhO_ZhWFxcirK5oeKUsEk";
 const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
 
 const groq = new Groq({
-  apiKey: "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",
+  apiKey: "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",
 });
 
 async function fetchYouTubeVideos(query) {

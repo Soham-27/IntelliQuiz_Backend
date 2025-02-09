@@ -31,6 +31,7 @@
     createdAt DateTime?
     updatedAt DateTime?
     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
   }
 
   model Test {
@@ -41,7 +42,7 @@
     testQuestions TestQuestion[]
     testResult    TestResult?
     Question  Question[]
-    
+    isbrodcasted Boolean?
   }
 
   model Question {

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
+import { truncateSync } from "fs";
 
 const prisma = new PrismaClient();
 
@@ -96,7 +97,6 @@ export const generateyoutubeQuiz = async (req, res) => {
   }
 };
 
-export const generatepdfQuiz = async (req, res) => {};
 export const startQuiz = async (req, res) => {
   try {
     const { test_id, difficulty } = req.body;
