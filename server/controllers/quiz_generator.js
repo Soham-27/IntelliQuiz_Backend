@@ -447,18 +447,18 @@ export const getNotSubmittedQuestions = async (req, res) => {
 
 export const reportQuestion = async (req, res) => {
   try {
-    const { q_id } = req.body;
+    const q_id = parseInt(req.params.q_id, 10);
 
     // Validate input
-    if (!q_id) {
-      return res.status(400).json({ error: "Question ID is required" });
+    if (isNaN(q_id)) {
+      return res.status(400).json({ error: "Invalid Question ID" });
     }
 
-    // Check if the question exists before updating
-    const questionExists = await prisma.question.findFirst({
+    // Check if the question exists
+    const questionExists = await prisma.question.findUnique({
       where: { id: q_id },
     });
-    console.log(questionExists);
+
     if (!questionExists) {
       return res.status(404).json({ error: "Question not found" });
     }
@@ -469,12 +469,14 @@ export const reportQuestion = async (req, res) => {
       data: { reported: true },
     });
 
-    res
-      .status(200)
-      .json({ message: "Question reported successfully", question: result });
+    return res.status(200).json({
+      message: "Question reported successfully",
+      question: result,
+    });
   } catch (error) {
     console.error("Error reporting question:", error);
-
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// Route definition
