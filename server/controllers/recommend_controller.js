@@ -69,6 +69,7 @@ async function analyzeTest(data) {
     .join("\n\n");
 
   const completion = await groq.chat.completions.create({
+    temperature: 0.5,
     messages: [
       {
         role: "system",
@@ -79,7 +80,7 @@ async function analyzeTest(data) {
         content: `Test data: ${JSON.stringify(data, null, 2)}\n\n
         YouTube links: ${formattedLinks}
         generate analysis based on given Test data and provide followiing as follows
-        1.genrate strength and weak areas from given data and some detailed about stength
+        1.genrate 2-3 strengths and weakneses dont refer tto the scores
         2.provide study resources for each topic also provide you tube links
         3.provide you tube like which provided above
         4.generate weekly plan like from monday to sunday for each day
