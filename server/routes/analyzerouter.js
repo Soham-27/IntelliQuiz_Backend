@@ -18,5 +18,5 @@ analyticsRouter.get(
 analyticsRouter.get("/generateScores", isUserAuthenticated, getUserAnalytics);
 analyticsRouter.get("/test/:testId", isUserAuthenticated, getQuestionsByTestId);
 
-analyticsRouter.get("/getrecommdations", isUserAuthenticated, getrecommdations);
+analyticsRouter.get("/getStrengths", isUserAuthenticated, getrecommdations);
 export { analyticsRouter };
