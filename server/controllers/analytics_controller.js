@@ -142,7 +142,8 @@ export const getQuestionsByTestId = async (req, res) => {
             correctOption: true,
             topic: true, // Added topic
             subTopic: true,
-            Question_type: true, // Added subTopic
+            Question_type: true,
+            explanation: true, // Added subTopic
           },
         },
       },
@@ -161,6 +162,7 @@ export const getQuestionsByTestId = async (req, res) => {
       timetaken: tq.timetaken,
       isCorrect: tq.isCorrect,
       questionType: tq.question.Question_type,
+      explanation: tq.question.explanation,
     }));
 
     res.json(formattedQuestions);

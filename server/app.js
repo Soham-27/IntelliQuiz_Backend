@@ -8,6 +8,7 @@ import cron from "node-cron";
 import { resultRouter } from "./routes/resultRoutes.js";
 import { analyticsRouter } from "./routes/analyzerouter.js";
 import { PrismaClient } from "@prisma/client";
+import pdfrouter from "./routes/pdf_routes.js";
 // Load environment variables
 dotenv.config("./.env");
 
@@ -41,6 +42,7 @@ app.use("/user", userRouter);
 app.use("/quiz", quizRouter);
 app.use("/result", resultRouter);
 app.use("/analytics", analyticsRouter);
+app.use("/pdf", pdfrouter);
 // Basic route
 app.get("/", (req, res) => {
   res.json("Hello from the server!");

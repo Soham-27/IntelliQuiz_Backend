@@ -31,6 +31,7 @@
     createdAt DateTime?
     updatedAt DateTime?
     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
   }
 
   model Test {
@@ -41,7 +42,7 @@
     testQuestions TestQuestion[]
     testResult    TestResult?
     Question  Question[]
-    
+    isbrodcasted Boolean?
   }
 
   model Question {
@@ -53,7 +54,9 @@
     subTopic      String?  // Allow null values (remove default "null")
     difficulty    Int
     Question_type String
-    testId        Int?     // Make it optional
+    explanation   String?
+    reported      Boolean?
+    testId        Int     // Make it optional
     test          Test?    @relation(fields: [testId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     testQuestions TestQuestion[]
   }

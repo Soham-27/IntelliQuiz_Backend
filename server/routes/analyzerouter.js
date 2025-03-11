@@ -5,6 +5,7 @@ import {
   getQuestionsByTestId,
   getUserAnalytics,
 } from "../controllers/analytics_controller.js";
+import { getrecommdations } from "../controllers/recommend_controller.js";
 
 const analyticsRouter = Router();
 
@@ -16,4 +17,6 @@ analyticsRouter.get(
 
 analyticsRouter.get("/generateScores", isUserAuthenticated, getUserAnalytics);
 analyticsRouter.get("/test/:testId", isUserAuthenticated, getQuestionsByTestId);
+
+analyticsRouter.get("/getStrengths", isUserAuthenticated, getrecommdations);
 export { analyticsRouter };
