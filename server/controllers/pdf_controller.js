@@ -42,7 +42,7 @@ export const processPDF = async (req, res) => {
 
     // Make request to FastAPI
     const response = await axios.post(
-      "https://69e8-2401-4900-7c63-7a51-8ae-59a4-710a-d80e.ngrok-free.app/process_and_generate/",
+      `${process.env.FAST_API}/process_and_generate/`,
       formData,
       {
         headers: {

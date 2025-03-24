@@ -1,52 +1,52 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
-import { generateUserToken } from "../middleware/user_middleware.js";
+  import { PrismaClient } from "@prisma/client";
+  import bcrypt from "bcrypt";
+  import { generateUserToken } from "../middleware/user_middleware.js";
 
-const prisma = new PrismaClient();
-const saltRounds = 10; // Define salt rounds for bcrypt
+  const prisma = new PrismaClient();
+  const saltRounds = 10; // Define salt rounds for bcrypt
 
-export const createUser = async (req, res) => {
-  try {
-    const { user_name, email, password } = req.body;
+  export const createUser = async (req, res) => {
+    try {
+      const { user_name, email, password } = req.body;
 
-    if (!user_name || !email || !password) {
-      return res.status(400).json({ error: "All fields are required" });
+      if (!user_name || !email || !password) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { userName: user_name }],
+        },
+      });
+
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ error: "Email and username already exist" });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user in database
+      const user = await prisma.user.create({
+        data: {
+          userName: user_name, // Match Prisma schema
+          email,
+          password: hashedPassword,
+        },
+      });
+
+      // Generate token
+      const token = await generateUserToken(user.id);
+
+      res.status(201).json({ user, token });
+    } catch (error) {
+      console.error("Error in creating user:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { userName: user_name }],
-      },
-    });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "Email and username already exist" });
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user in database
-    const user = await prisma.user.create({
-      data: {
-        userName: user_name, // Match Prisma schema
-        email,
-        password: hashedPassword,
-      },
-    });
-
-    // Generate token
-    const token = await generateUserToken(user.id);
-
-    res.status(201).json({ user, token });
-  } catch (error) {
-    console.error("Error in creating user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+  };
 
 export const loginUser = async (req, res) => {
   try {
