@@ -3,11 +3,11 @@ import Groq from "groq-sdk";
 import axios from "axios";
 
 const prisma = new PrismaClient();
-const YOUTUBE_API_KEY = "AIzaSyA1Mv_KvParabXhO_ZhWFxcirK5oeKUsEk";
-const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+const YOUTUBE_SEARCH_URL = process.env.YOUTUBE_SEARCH_URL;
 
 const groq = new Groq({
-  apiKey: "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",
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 async function fetchYouTubeVideos(query) {
